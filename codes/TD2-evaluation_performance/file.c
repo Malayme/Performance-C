@@ -9,17 +9,19 @@ typedef struct {
 } file;
 
 file* creerF(int capacite) {
+    if (capacite < 0) capacite = 10; // Capacité par défaut si négative
     file* f = (file*)malloc(sizeof(file));
     if (!f) return NULL;
 
-    f->capacite = capacite < 0 ? -1 : capacite;
-    f->taille = 0;
-    f->debut = 0;
-    f->elements = (char**)malloc((capacite > 0 ? capacite : 1) * sizeof(char*));
+    f->elements = (char**)malloc(capacite * sizeof(char*));
     if (!f->elements) {
         free(f);
         return NULL;
     }
+
+    f->capacite = capacite;
+    f->taille = 0;
+    f->debut = 0;
     return f;
 }
 
@@ -47,13 +49,24 @@ char* debut(const file* f) {
 
 int enfiler(file* f, const char* element) {
     if (!f || !element) return 0;
-    if (f->capacite > 0 && f->taille >= f->capacite) return 0;
 
-    char* copie = strdup(element);
-    if (!copie) return 0;
+    if (f->taille == f->capacite) {
+        int nouvelleCapacite = f->capacite * 2;
+        char** nouveauxElements = (char**)malloc(nouvelleCapacite * sizeof(char*));
+        if (!nouveauxElements) return 0;
+
+        for (int i = 0; i < f->taille; i++) {
+            nouveauxElements[i] = f->elements[(f->debut + i) % f->capacite];
+        }
+
+        free(f->elements);
+        f->elements = nouveauxElements;
+        f->capacite = nouvelleCapacite;
+        f->debut = 0;
+    }
 
     int position = (f->debut + f->taille) % f->capacite;
-    f->elements[position] = copie;
+    f->elements[position] = strdup(element);
     f->taille++;
     return 1;
 }
@@ -75,8 +88,3 @@ void viderF(file* f) {
     f->taille = 0;
     f->debut = 0;
 }
-
-
-
-
-

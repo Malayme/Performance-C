@@ -14,7 +14,6 @@ liste* creer(int capacite) {
     (void)capacite; // La capacité n'est pas utilisée pour une liste chaînée
     liste* l = (liste*)malloc(sizeof(liste));
     if (!l) return NULL;
-
     l->tete = NULL;
     l->taille = 0;
     return l;
@@ -22,13 +21,12 @@ liste* creer(int capacite) {
 
 void supprimer(liste* l) {
     if (!l) return;
-
     noeud* courant = l->tete;
     while (courant) {
-        noeud* temp = courant;
-        courant = courant->suivant;
-        free(temp->element);
-        free(temp);
+        noeud* suivant = courant->suivant;
+        free(courant->element);
+        free(courant);
+        courant = suivant;
     }
     free(l);
 }
@@ -43,7 +41,6 @@ int estVide(const liste* l) {
 
 char* lire(const liste* l, int position) {
     if (!l || position < 0 || position >= l->taille) return NULL;
-
     noeud* courant = l->tete;
     for (int i = 0; i < position; i++) {
         courant = courant->suivant;
@@ -53,7 +50,6 @@ char* lire(const liste* l, int position) {
 
 int position(const liste* l, const char* element) {
     if (!l || !element) return -1;
-
     noeud* courant = l->tete;
     int index = 0;
     while (courant) {
@@ -71,37 +67,41 @@ int contient(const liste* l, const char* element) {
 }
 
 int ecrire(liste* l, int position, const char* element) {
-    if (!l || position < 0 || position >= l->taille || !element) return 0;
-
+    if (!l || !element || position < 0 || position >= l->taille) return 0;
     noeud* courant = l->tete;
     for (int i = 0; i < position; i++) {
         courant = courant->suivant;
     }
-
-    char* copie = strdup(element);
-    if (!copie) return 0;
-
     free(courant->element);
-    courant->element = copie;
+    courant->element = strdup(element);
     return 1;
 }
 
 int ajouter(liste* l, int position, const char* element) {
-    if (!l || !element || (position != -1 && (position < 0 || position > l->taille))) return 0;
+    if (!l || !element || position < -1 || position > l->taille) return 0;
 
     noeud* nouveau = (noeud*)malloc(sizeof(noeud));
     if (!nouveau) return 0;
-
     nouveau->element = strdup(element);
-    if (!nouveau->element) {
-        free(nouveau);
-        return 0;
-    }
+    nouveau->suivant = NULL;
 
-    if (position == 0) {
+    if (position == -1 || position == l->taille) {
+        // Ajouter à la fin
+        if (!l->tete) {
+            l->tete = nouveau;
+        } else {
+            noeud* courant = l->tete;
+            while (courant->suivant) {
+                courant = courant->suivant;
+            }
+            courant->suivant = nouveau;
+        }
+    } else if (position == 0) {
+        // Ajouter au début
         nouveau->suivant = l->tete;
         l->tete = nouveau;
     } else {
+        // Ajouter au milieu
         noeud* courant = l->tete;
         for (int i = 0; i < position - 1; i++) {
             courant = courant->suivant;
@@ -119,19 +119,17 @@ char* retirer(liste* l, int position) {
 
     noeud* courant = l->tete;
     noeud* precedent = NULL;
-
     for (int i = 0; i < position; i++) {
         precedent = courant;
         courant = courant->suivant;
     }
 
+    char* element = courant->element;
     if (precedent) {
         precedent->suivant = courant->suivant;
     } else {
         l->tete = courant->suivant;
     }
-
-    char* element = courant->element;
     free(courant);
     l->taille--;
     return element;
@@ -139,13 +137,12 @@ char* retirer(liste* l, int position) {
 
 void vider(liste* l) {
     if (!l) return;
-
     noeud* courant = l->tete;
     while (courant) {
-        noeud* temp = courant;
-        courant = courant->suivant;
-        free(temp->element);
-        free(temp);
+        noeud* suivant = courant->suivant;
+        free(courant->element);
+        free(courant);
+        courant = suivant;
     }
     l->tete = NULL;
     l->taille = 0;

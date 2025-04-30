@@ -7,16 +7,18 @@ typedef struct {
 } liste;
 
 liste* creer(int capacite) {
+    if (capacite < 0) capacite = 10; // Capacité par défaut si négative
     liste* l = (liste*)malloc(sizeof(liste));
     if (!l) return NULL;
 
-    l->capacite = capacite < 0 ? -1 : capacite;
-    l->taille = 0;
-    l->elements = (char**)malloc((capacite > 0 ? capacite : 1) * sizeof(char*));
+    l->elements = (char**)malloc(capacite * sizeof(char*));
     if (!l->elements) {
         free(l);
         return NULL;
     }
+
+    l->capacite = capacite;
+    l->taille = 0;
     return l;
 }
 
@@ -55,29 +57,30 @@ int contient(const liste* l, const char* element) {
 }
 
 int ecrire(liste* l, int position, const char* element) {
-    if (!l || position < 0 || position >= l->taille || !element) return 0;
-    char* copie = strdup(element);
-    if (!copie) return 0;
-
+    if (!l || !element || position < 0 || position >= l->taille) return 0;
     free(l->elements[position]);
-    l->elements[position] = copie;
+    l->elements[position] = strdup(element);
     return 1;
 }
 
 int ajouter(liste* l, int position, const char* element) {
-    if (!l || !element || (position != -1 && (position < 0 || position > l->taille))) return 0;
-    if (l->capacite > 0 && l->taille >= l->capacite) return 0;
+    if (!l || !element || position < -1 || position > l->taille) return 0;
 
-    char* copie = strdup(element);
-    if (!copie) return 0;
+    if (l->taille == l->capacite) {
+        int nouvelleCapacite = l->capacite * 2;
+        char** nouveauxElements = (char**)realloc(l->elements, nouvelleCapacite * sizeof(char*));
+        if (!nouveauxElements) return 0;
+        l->elements = nouveauxElements;
+        l->capacite = nouvelleCapacite;
+    }
 
     if (position == -1 || position == l->taille) {
-        l->elements[l->taille++] = copie;
+        l->elements[l->taille++] = strdup(element);
     } else {
         for (int i = l->taille; i > position; i--) {
             l->elements[i] = l->elements[i - 1];
         }
-        l->elements[position] = copie;
+        l->elements[position] = strdup(element);
         l->taille++;
     }
     return 1;

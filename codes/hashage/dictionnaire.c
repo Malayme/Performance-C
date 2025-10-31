@@ -188,33 +188,3 @@ void detruire_dictionnaire(dictionnaire *d)
     }
     free(d->tableau);
 }
-
-// Fonction principale pour tester le dictionnaire
-int main()
-{
-    dictionnaire d;
-    initialiser_dictionnaire(&d, 10);
-
-    ajouter(&d, "cle1", "valeur1");
-    ajouter(&d, "cle2", "valeur2");
-    ajouter(&d, "cle3", "valeur3");
-    printf("Taille du dictionnaire : %d\n", taille(&d));
-    printf("Valeur de cle1 : %s\n", valeur(&d, "cle1"));
-    printf("Valeur de cle2 : %s\n", valeur(&d, "cle2"));
-
-    retirer(&d, "cle1");
-    printf("Taille après suppression : %d\n", taille(&d));
-    printf("Valeur de cle1 : %s\n", valeur(&d, "cle1"));
-
-    // Ajouter plus d'éléments pour tester l'agrandissement
-    for (int i = 0; i < 200; i++)
-    {
-        char key[10];
-        sprintf(key, "cle%d", i);
-        ajouter(&d, key, "valeur");
-    }
-    printf("Taille après ajout massif : %d\n", taille(&d));
-
-    detruire_dictionnaire(&d);
-    return 0;
-}
